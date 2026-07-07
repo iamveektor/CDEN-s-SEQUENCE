@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>C-DEN'S SEQUENCE</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="frame">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name">C-DEN'S SEQUENCE</span>
+    </div>
+    <div class="topbar-right">
+      <div class="brand-sub">nano&#8209;banana&#8209;2&#8209;lite &nbsp;&middot;&nbsp; grok&#8209;imagine&#8209;video&#8209;1.5</div>
+      <div class="credits-pill" id="credits-pill" title="kie.ai credit balance">
+        <span class="credits-dot"></span>
+        <span id="credits-value">—</span>
+        <span class="credits-label">credits</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="characters" role="tab" aria-selected="true">Characters</button>
+    <button class="tab" data-tab="image" role="tab" aria-selected="false">Image</button>
+    <button class="tab" data-tab="video" role="tab" aria-selected="false">Video</button>
+    <button class="tab" data-tab="bulk-image" role="tab" aria-selected="false">Bulk Image</button>
+    <button class="tab" data-tab="bulk-video" role="tab" aria-selected="false">Bulk Video</button>
+  </nav>
+
+  <!-- ============ CHARACTERS PANEL ============ -->
+  <section class="panel active" id="panel-characters">
+
+    <div class="page-head">
+      <div class="eyebrow">Reference library</div>
+      <h2>Subject, Scene &amp; Style — pick once, stay consistent</h2>
+      <p class="page-sub">Upload references into each category, just like Whisk. Click one in each row to make it active — the Image and Bulk Image tabs will use whatever's active here, so the same character keeps showing up the same way.</p>
+    </div>
+
+    <div class="category-block" data-category="subject">
+      <div class="card card-upload-character">
+        <div class="card-head">
+          <h3>Subject</h3>
+          <span class="count-pill" id="cat-count-subject">0 saved</span>
+        </div>
+        <p class="category-hint">People, characters, or objects that should look the same across every generation.</p>
+        <div class="row-2">
+          <div>
+            <label class="field-label-sm" style="margin-top:0;">Name</label>
+            <input type="text" class="cat-name-input" data-category="subject" placeholder="e.g. Dana, Marcus, Victor" />
+          </div>
+          <div>
+            <label class="field-label-sm" style="margin-top:0;">Reference image</label>
+            <div class="drop drop-sm cat-upload-drop" data-category="subject">
+              <input type="file" class="cat-upload-file" data-category="subject" accept="image/*" hidden />
+              <span class="drop-text">Click or drop an image</span>
+              <img class="drop-preview cat-upload-preview" data-category="subject" hidden />
+            </div>
+          </div>
+        </div>
+        <button class="run-btn run-btn-wide cat-add-btn" data-category="subject" style="margin-top:16px;">Add to Subject</button>
+        <p class="status-line cat-status" data-category="subject"></p>
+      </div>
+      <div class="card card-character-grid">
+        <div class="card-head">
+          <h3>Your subjects</h3>
+          <span class="active-pill" id="active-label-subject">None active</span>
+        </div>
+        <div class="character-grid" id="grid-subject"></div>
+        <div class="result-empty cat-empty" data-category="subject" style="padding: 24px 0 6px;">No subjects yet — add one above.</div>
+      </div>
+    </div>
+
+    <div class="category-block" data-category="scene">
+      <div class="card card-upload-character">
+        <div class="card-head">
+          <h3>Scene</h3>
+          <span class="count-pill" id="cat-count-scene">0 saved</span>
+        </div>
+        <p class="category-hint">Backdrops or settings you want to reuse — a location, a room, an environment.</p>
+        <div class="row-2">
+          <div>
+            <label class="field-label-sm" style="margin-top:0;">Name</label>
+            <input type="text" class="cat-name-input" data-category="scene" placeholder="e.g. Santa Monica Pier" />
+          </div>
+          <div>
+            <label class="field-label-sm" style="margin-top:0;">Reference image</label>
+            <div class="drop drop-sm cat-upload-drop" data-category="scene">
+              <input type="file" class="cat-upload-file" data-category="scene" accept="image/*" hidden />
+              <span class="drop-text">Click or drop an image</span>
+              <img class="drop-preview cat-upload-preview" data-category="scene" hidden />
+            </div>
+          </div>
+        </div>
+        <button class="run-btn run-btn-wide cat-add-btn" data-category="scene" style="margin-top:16px;">Add to Scene</button>
+        <p class="status-line cat-status" data-category="scene"></p>
+      </div>
+      <div class="card card-character-grid">
+        <div class="card-head">
+          <h3>Your scenes</h3>
+          <span class="active-pill" id="active-label-scene">None active</span>
+        </div>
+        <div class="character-grid" id="grid-scene"></div>
+        <div class="result-empty cat-empty" data-category="scene" style="padding: 24px 0 6px;">No scenes yet — add one above.</div>
+      </div>
+    </div>
+
+    <div class="category-block" data-category="style">
+      <div class="card card-upload-character">
+        <div class="card-head">
+          <h3>Style</h3>
+          <span class="count-pill" id="cat-count-style">0 saved</span>
+        </div>
+        <p class="category-hint">A visual style or art direction reference to apply on top of the subject and scene.</p>
+        <div class="row-2">
+          <div>
+            <label class="field-label-sm" style="margin-top:0;">Name</label>
+            <input type="text" class="cat-name-input" data-category="style" placeholder="e.g. Cinematic illustration" />
+          </div>
+          <div>
+            <label class="field-label-sm" style="margin-top:0;">Reference image</label>
+            <div class="drop drop-sm cat-upload-drop" data-category="style">
+              <input type="file" class="cat-upload-file" data-category="style" accept="image/*" hidden />
+              <span class="drop-text">Click or drop an image</span>
+              <img class="drop-preview cat-upload-preview" data-category="style" hidden />
+            </div>
+          </div>
+        </div>
+        <button class="run-btn run-btn-wide cat-add-btn" data-category="style" style="margin-top:16px;">Add to Style</button>
+        <p class="status-line cat-status" data-category="style"></p>
+      </div>
+      <div class="card card-character-grid">
+        <div class="card-head">
+          <h3>Your styles</h3>
+          <span class="active-pill" id="active-label-style">None active</span>
+        </div>
+        <div class="character-grid" id="grid-style"></div>
+        <div class="result-empty cat-empty" data-category="style" style="padding: 24px 0 6px;">No styles yet — add one above.</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============ IMAGE PANEL ============ -->
+  <section class="panel" id="panel-image">
+    <div class="workspace">
+
+      <div class="controls">
+        <label class="field-label" for="image-prompt">Prompt</label>
+        <textarea id="image-prompt" placeholder="Describe the image you want to generate..." rows="5"></textarea>
+
+        <label class="field-label" for="image-aspect">Aspect ratio</label>
+        <select id="image-aspect">
+          <option value="auto">Auto</option>
+          <option value="1:1">1:1 — Square</option>
+          <option value="16:9">16:9 — Widescreen</option>
+          <option value="9:16">9:16 — Vertical</option>
+          <option value="4:3">4:3</option>
+          <option value="3:4">3:4</option>
+          <option value="3:2">3:2</option>
+          <option value="2:3">2:3</option>
+          <option value="21:9">21:9 — Ultra-wide</option>
+        </select>
+
+        <label class="field-label">References <span class="optional">(from your Subject / Scene / Style library)</span></label>
+        <div class="cat-picker-group">
+          <div class="cat-picker-row">
+            <span class="cat-picker-label">Subject</span>
+            <div class="character-picker" id="image-subject-picker"></div>
+          </div>
+          <div class="cat-picker-row">
+            <span class="cat-picker-label">Scene</span>
+            <div class="character-picker" id="image-scene-picker"></div>
+          </div>
+          <div class="cat-picker-row">
+            <span class="cat-picker-label">Style</span>
+            <div class="character-picker" id="image-style-picker"></div>
+          </div>
+        </div>
+
+        <label class="field-label" style="margin-top: 16px;">Or upload a one-off reference <span class="optional">(optional)</span></label>
+        <div class="drop" id="image-ref-drop">
+          <input type="file" id="image-ref-file" accept="image/*" hidden />
+          <span class="drop-text">Click or drop an image to edit instead of generating from scratch</span>
+          <img id="image-ref-preview" class="drop-preview" hidden />
+        </div>
+
+        <button class="run-btn" id="image-run">Generate image</button>
+        <p class="status-line" id="image-status"></p>
+      </div>
+
+      <div class="result">
+        <div class="result-empty" id="image-result-empty">Your generated image will appear here</div>
+        <div class="result-loading" id="image-result-loading" hidden>
+          <div class="spinner"></div>
+          <span id="image-loading-text">Generating…</span>
+        </div>
+        <img id="image-result-img" class="result-media" hidden />
+        <a id="image-download" class="download-link" hidden download target="_blank">Download image</a>
+        <button class="expand-btn" id="image-expand" hidden title="Preview full size">⛶</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ VIDEO PANEL ============ -->
+  <section class="panel" id="panel-video">
+    <div class="workspace">
+
+      <div class="controls">
+        <label class="field-label" for="video-prompt">Prompt <span class="optional">(describe the motion)</span></label>
+        <textarea id="video-prompt" placeholder="Describe how the image should move, e.g. 'slow cinematic push-in as she turns to look at the camera'" rows="5"></textarea>
+
+        <label class="field-label">Source image <span class="required">(required — this model animates a still image)</span></label>
+        <div class="character-picker" id="video-char-picker"></div>
+        <div class="drop" id="video-ref-drop">
+          <input type="file" id="video-ref-file" accept="image/*" hidden />
+          <span class="drop-text">Click or drop the image to animate</span>
+          <img id="video-ref-preview" class="drop-preview" hidden />
+        </div>
+        <button class="ghost-btn" id="video-use-last" type="button" hidden>Use last generated image</button>
+
+        <div class="row-2">
+          <div>
+            <label class="field-label" for="video-aspect">Aspect ratio</label>
+            <select id="video-aspect">
+              <option value="16:9">16:9 — Widescreen</option>
+              <option value="9:16">9:16 — Vertical</option>
+              <option value="1:1">1:1 — Square</option>
+              <option value="4:3">4:3</option>
+              <option value="3:4">3:4</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="video-duration">Duration (seconds)</label>
+            <input type="number" id="video-duration" min="1" max="15" value="8" />
+          </div>
+        </div>
+        <p class="hint">Resolution is fixed at 480p.</p>
+
+        <button class="run-btn" id="video-run">Generate video</button>
+        <p class="status-line" id="video-status"></p>
+      </div>
+
+      <div class="result">
+        <div class="result-empty" id="video-result-empty">Your generated video will appear here</div>
+        <div class="result-loading" id="video-result-loading" hidden>
+          <div class="spinner"></div>
+          <span id="video-loading-text">Generating… this can take a minute or two</span>
+        </div>
+        <video id="video-result-video" class="result-media" controls hidden></video>
+        <a id="video-download" class="download-link" hidden download target="_blank">Download video</a>
+        <button class="expand-btn" id="video-expand" hidden title="Preview full size">⛶</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ BULK IMAGE PANEL ============ -->
+  <section class="panel" id="panel-bulk-image">
+
+    <div class="page-head">
+      <div class="eyebrow">Bulk AI image generator</div>
+      <h2>Create many images from one prompt list</h2>
+      <p class="page-sub">Generate concurrently with your kie.ai account, preview them in a gallery, and download single images or a ZIP bundle.</p>
+    </div>
+
+    <div class="bulk-grid-layout">
+
+      <div class="bulk-col-left">
+        <div class="card card-prompts">
+          <div class="card-head">
+            <h3>Prompts</h3>
+            <span class="count-pill" id="bulk-image-count">0 prompts</span>
+          </div>
+          <textarea id="bulk-image-prompts" placeholder="Enter one prompt per line&#10;&#10;A vintage typewriter on a wooden desk&#10;A neon sign reading OPEN in the rain&#10;A hot air balloon over mountains at dawn" rows="11"></textarea>
+        </div>
+
+        <div class="card card-style">
+          <div class="style-pill-row">
+            <h3 style="margin:0;">Style</h3>
+            <button class="style-add-btn" id="bulk-image-style-add" type="button">Add custom</button>
+          </div>
+          <div class="pill-group" id="bulk-image-style-pills" data-value="" style="margin-top: 12px;">
+            <button class="pill active" data-value="">None</button>
+            <button class="pill" data-value="Cinematic, dramatic lighting, shallow depth of field, ">Cinematic</button>
+            <button class="pill" data-value="Editorial photography style, clean composition, ">Editorial</button>
+            <button class="pill" data-value="Minimal, negative space, muted palette, ">Minimal</button>
+            <button class="pill" data-value="Vivid colors, high contrast, bold, ">Vivid</button>
+          </div>
+          <span class="style-clear" id="bulk-image-style-clear">Clear style</span>
+        </div>
+
+        <div class="card card-ref">
+          <label class="field-label-sm" style="margin-top:0;">References <span class="optional">(from your library, applies to every prompt)</span></label>
+          <div class="cat-picker-group">
+            <div class="cat-picker-row">
+              <span class="cat-picker-label">Subject</span>
+              <div class="character-picker" id="bulk-image-subject-picker"></div>
+            </div>
+            <div class="cat-picker-row">
+              <span class="cat-picker-label">Scene</span>
+              <div class="character-picker" id="bulk-image-scene-picker"></div>
+            </div>
+            <div class="cat-picker-row">
+              <span class="cat-picker-label">Style</span>
+              <div class="character-picker" id="bulk-image-style-picker"></div>
+            </div>
+          </div>
+          <label class="field-label-sm">Or upload a one-off reference</label>
+          <div class="drop drop-sm" id="bulk-image-ref-drop">
+            <input type="file" id="bulk-image-ref-file" accept="image/*" hidden />
+            <span class="drop-text">Click or drop an image to edit</span>
+            <img id="bulk-image-ref-preview" class="drop-preview" hidden />
+          </div>
+        </div>
+      </div>
+
+      <div class="bulk-col-right">
+        <div class="card card-settings">
+          <h3>Settings</h3>
+
+          <label class="field-label-sm">Model</label>
+          <div class="fixed-value">Nano Banana 2 Lite</div>
+
+          <label class="field-label-sm">Aspect ratio</label>
+          <div class="pill-group" id="bulk-image-aspect-pills" data-value="16:9">
+            <button class="pill" data-value="1:1">1:1</button>
+            <button class="pill active" data-value="16:9">16:9</button>
+            <button class="pill" data-value="9:16">9:16</button>
+            <button class="pill" data-value="4:3">4:3</button>
+            <button class="pill" data-value="3:4">3:4</button>
+            <button class="pill" data-value="auto">auto</button>
+          </div>
+
+          <label class="field-label-sm">Resolution</label>
+          <div class="pill-group">
+            <button class="pill active" disabled title="nano-banana-2-lite generates 1K images">1K</button>
+            <button class="pill" disabled title="Not supported by nano-banana-2-lite">2K</button>
+            <button class="pill" disabled title="Not supported by nano-banana-2-lite">4K</button>
+          </div>
+
+          <div class="row-2">
+            <div>
+              <label class="field-label-sm">Concurrency</label>
+              <input type="number" id="bulk-image-concurrency" min="1" max="8" value="4" />
+            </div>
+            <div>
+              <label class="field-label-sm">Max retries</label>
+              <input type="number" id="bulk-image-retries" min="0" max="5" value="1" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="run-btn run-btn-wide" id="bulk-image-run" disabled>Enter prompts to generate</button>
+    <p class="status-line" id="bulk-image-status"></p>
+
+    <div class="card card-progress" id="bulk-image-progress" hidden>
+      <div class="card-head">
+        <h3>Generation progress</h3>
+        <div class="btn-row">
+          <button class="pill-btn pill-btn-resume" id="bulk-image-resume" hidden>Resume</button>
+          <button class="pill-btn pill-btn-cancel" id="bulk-image-cancel">Cancel</button>
+        </div>
+      </div>
+      <p class="progress-sub" id="bulk-image-progress-text">0 of 0 complete, 0 failed</p>
+      <div class="bulk-progress-bar"><div class="bulk-progress-fill" id="bulk-image-progress-fill"></div></div>
+      <div class="progress-footer">
+        <span id="bulk-image-elapsed">Elapsed: 0s</span>
+        <span id="bulk-image-eta">ETA: —</span>
+      </div>
+    </div>
+
+    <div class="card card-queue" id="bulk-image-queue-card" hidden>
+      <h3>Queue</h3>
+      <div class="queue-list" id="bulk-image-queue"></div>
+    </div>
+
+    <div class="bulk-result">
+      <a class="download-link bulk-zip-link" id="bulk-image-zip" href="#" hidden>Download all as .zip</a>
+      <div class="bulk-media-grid" id="bulk-image-grid"></div>
+    </div>
+
+  </section>
+
+  <!-- ============ BULK VIDEO PANEL ============ -->
+  <section class="panel" id="panel-bulk-video">
+
+    <div class="page-head">
+      <div class="eyebrow">Bulk AI video generator</div>
+      <h2>Animate many prompts from your image(s)</h2>
+      <p class="page-sub">Generate concurrently with your kie.ai account, preview them in a gallery, and download single videos or a ZIP bundle.</p>
+    </div>
+
+    <div class="bulk-grid-layout">
+
+      <div class="bulk-col-left">
+        <div class="card card-prompts">
+          <div class="card-head">
+            <h3>Prompts</h3>
+            <span class="count-pill" id="bulk-video-count">0 prompts</span>
+          </div>
+          <textarea id="bulk-video-prompts" placeholder="Enter one motion prompt per line&#10;&#10;Slow push-in as she looks up and smiles&#10;Camera pans left revealing the skyline" rows="8"></textarea>
+        </div>
+
+        <div class="card card-ref">
+          <label class="field-label-sm" style="margin-top:0;">Source image(s) <span class="required">required</span></label>
+          <div class="character-picker" id="bulk-video-char-picker"></div>
+          <div class="drop drop-sm" id="bulk-video-ref-drop">
+            <input type="file" id="bulk-video-ref-file" accept="image/*" multiple hidden />
+            <span class="drop-text">Upload 1 image (used for all) or one per prompt (matched in order)</span>
+          </div>
+          <div class="bulk-thumb-strip" id="bulk-video-thumb-strip"></div>
+          <button class="ghost-btn" id="bulk-video-use-last" type="button" hidden>Use last generated image</button>
+        </div>
+      </div>
+
+      <div class="bulk-col-right">
+        <div class="card card-settings">
+          <h3>Settings</h3>
+
+          <label class="field-label-sm">Model</label>
+          <div class="fixed-value">Grok Imagine Video 1.5</div>
+
+          <label class="field-label-sm">Aspect ratio</label>
+          <div class="pill-group" id="bulk-video-aspect-pills" data-value="16:9">
+            <button class="pill active" data-value="16:9">16:9</button>
+            <button class="pill" data-value="9:16">9:16</button>
+            <button class="pill" data-value="1:1">1:1</button>
+            <button class="pill" data-value="4:3">4:3</button>
+            <button class="pill" data-value="3:4">3:4</button>
+          </div>
+
+          <label class="field-label-sm">Resolution</label>
+          <div class="pill-group">
+            <button class="pill active" disabled title="Fixed for this model">480p</button>
+            <button class="pill" disabled title="Not supported by this model">720p</button>
+          </div>
+
+          <div class="row-2">
+            <div>
+              <label class="field-label-sm">Duration (sec)</label>
+              <input type="number" id="bulk-video-duration" min="1" max="15" value="8" />
+            </div>
+            <div>
+              <label class="field-label-sm">Concurrency</label>
+              <input type="number" id="bulk-video-concurrency" min="1" max="8" value="3" />
+            </div>
+          </div>
+          <label class="field-label-sm">Max retries</label>
+          <input type="number" id="bulk-video-retries" min="0" max="5" value="1" />
+        </div>
+      </div>
+
+    </div>
+
+    <button class="run-btn run-btn-wide" id="bulk-video-run" disabled>Enter prompts to generate</button>
+    <p class="status-line" id="bulk-video-status"></p>
+
+    <div class="card card-progress" id="bulk-video-progress" hidden>
+      <div class="card-head">
+        <h3>Generation progress</h3>
+        <div class="btn-row">
+          <button class="pill-btn pill-btn-resume" id="bulk-video-resume" hidden>Resume</button>
+          <button class="pill-btn pill-btn-cancel" id="bulk-video-cancel">Cancel</button>
+        </div>
+      </div>
+      <p class="progress-sub" id="bulk-video-progress-text">0 of 0 complete, 0 failed</p>
+      <div class="bulk-progress-bar"><div class="bulk-progress-fill" id="bulk-video-progress-fill"></div></div>
+      <div class="progress-footer">
+        <span id="bulk-video-elapsed">Elapsed: 0s</span>
+        <span id="bulk-video-eta">ETA: —</span>
+      </div>
+    </div>
+
+    <div class="card card-queue" id="bulk-video-queue-card" hidden>
+      <h3>Queue</h3>
+      <div class="queue-list" id="bulk-video-queue"></div>
+    </div>
+
+    <div class="bulk-result">
+      <a class="download-link bulk-zip-link" id="bulk-video-zip" href="#" hidden>Download all as .zip</a>
+      <div class="bulk-media-grid" id="bulk-video-grid"></div>
+    </div>
+
+  </section>
+
+  <footer class="footer">Connected to your kie.ai account</footer>
+
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox-close" id="lightbox-close">✕</button>
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" hidden>‹</button>
+  <div class="lightbox-media-wrap" id="lightbox-media-wrap"></div>
+  <button class="lightbox-nav lightbox-next" id="lightbox-next" hidden>›</button>
+  <div class="lightbox-footer">
+    <p class="lightbox-prompt" id="lightbox-prompt"></p>
+    <a class="download-link" id="lightbox-download" href="#" download target="_blank">Download</a>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
