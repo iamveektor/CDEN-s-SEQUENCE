@@ -2,6 +2,63 @@
 
 A web app for generating images and videos through your own kie.ai account.
 
+## Talk to it from Claude directly (MCP)
+
+`mcp_server.py` is a companion server that exposes this app as tools Claude
+can call in a normal chat — "generate these 10 scenes" turns into Claude
+actually calling your site, not just describing what it would do.
+
+**Tools it exposes:**
+- `get_credits` — check kie.ai balance
+- `list_characters` — see what's saved in your Subject/Scene/Style library
+- `generate_image` / `generate_video` — start a single generation, returns a `task_id`
+- `check_task` — poll a single generation for its result
+- `bulk_generate_images` / `bulk_generate_videos` — start a batch (up to 150), returns a `batch_id`
+- `check_batch` — poll a batch for progress and failures
+
+This mirrors the same async job/poll pattern as your other MCP tools (vidIQ,
+etc.) — Claude starts a job, gets an ID back, and checks on it, rather than
+sitting there waiting.
+
+### Deploying it (as a second Railway service, same repo)
+
+1. In your Railway project, click **+ New** → **GitHub Repository** → pick
+   **CDEN-s-SEQUENCE** again (yes, the same repo — Railway can run it twice
+   with different start commands)
+2. Once it's created, click into the new service → **Settings**
+3. Under **Deploy**, find **Custom Start Command** and set it to:
+   ```
+   python mcp_server.py
+   ```
+4. Go to **Variables** → **New Variable**:
+   - Name: `APP_BASE_URL`
+   - Value: your main site's URL (e.g. `https://web-production-3bfee.up.railway.app`)
+     — **no trailing slash**
+5. Go to **Settings** → **Networking** → **Generate Domain**. You'll get a
+   URL like `https://mcp-production-xxxx.up.railway.app` — the actual MCP
+   endpoint is that URL **plus `/mcp`**, e.g.
+   `https://mcp-production-xxxx.up.railway.app/mcp`
+
+### Connecting it to Claude
+
+1. In claude.ai, go to **Settings → Connectors → Add custom connector**
+2. Paste in your MCP URL (the one ending in `/mcp` from step 5 above)
+3. Click **Connect**
+
+Once connected, you can just say things like *"generate an image of Dana at
+her kitchen table, then check on it"* in a normal Claude conversation, and
+Claude will call these tools directly.
+
+### A security note
+
+Neither this app nor the MCP server has a login of any kind — anyone who
+has the URL can trigger generations against your kie.ai credits. That's
+fine for personal/solo use, but don't share either URL publicly. If you
+ever want to lock it down further (a shared secret header, etc.), let me
+know and I can add that.
+
+
+
 - **Text-to-image / image-editing**: `nano-banana-2-lite`
 - **Image-to-video**: `grok-imagine-video-1.5-preview` (480p)
 
