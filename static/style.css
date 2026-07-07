@@ -277,7 +277,7 @@ textarea:focus, select:focus, input:focus {
 }
 
 .result-loading {
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   gap: 14px;
@@ -286,6 +286,10 @@ textarea:focus, select:focus, input:focus {
   font-family: 'JetBrains Mono', monospace;
   text-align: center;
   max-width: 240px;
+}
+
+.result-loading:not([hidden]) {
+  display: flex;
 }
 
 .spinner {
@@ -782,8 +786,12 @@ textarea:focus, select:focus, input:focus {
 
 .bulk-zip-link {
   position: static;
-  display: inline-block;
+  display: none;
   margin-bottom: 16px;
+}
+
+.bulk-zip-link:not([hidden]) {
+  display: inline-block;
 }
 
 /* ============================================================
@@ -1037,11 +1045,15 @@ textarea:focus, select:focus, input:focus {
   inset: 0;
   background: rgba(6, 7, 10, 0.92);
   z-index: 1000;
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px;
+}
+
+.lightbox:not([hidden]) {
+  display: flex;
 }
 
 .lightbox-media-wrap {
@@ -1086,9 +1098,13 @@ textarea:focus, select:focus, input:focus {
   height: 44px;
   border-radius: 50%;
   cursor: pointer;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
+}
+
+.lightbox-nav:not([hidden]) {
+  display: flex;
 }
 
 .lightbox-nav:hover { border-color: var(--accent-line); color: var(--accent); }
@@ -1132,9 +1148,13 @@ textarea:focus, select:focus, input:focus {
   height: 34px;
   border-radius: 50%;
   cursor: pointer;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
+}
+
+.expand-btn:not([hidden]) {
+  display: flex;
 }
 
 .expand-btn:hover { border-color: var(--accent-line); color: var(--accent); }
