@@ -75,6 +75,27 @@ def index():
     return send_from_directory(app.static_folder, "index.html")
 
 
+@app.route("/api/credits", methods=["GET"])
+def get_credits():
+    err = require_api_key()
+    if err:
+        return err
+    try:
+        resp = requests.get(
+            f"{KIE_BASE}/chat/credit",
+            headers=kie_headers(),
+            timeout=15,
+        )
+        if resp.status_code != 200:
+            return jsonify({"error": f"kie.ai request failed: {resp.text}"}), 502
+        data = resp.json()
+        if data.get("code") != 200:
+            return jsonify({"error": data.get("msg") or "Could not fetch credits"}), 502
+        return jsonify({"credits": data.get("data")})
+    except requests.RequestException as e:
+        return jsonify({"error": str(e)}), 502
+
+
 # ---------- File upload (for image-to-video source images / reference images) ----------
 
 def upload_bytes_to_kie(file_bytes, mime, filename):

@@ -43,6 +43,20 @@ Any host that runs a Python web app works. Two easy free/cheap options:
 Either way, the only secret you need to set is `KIE_API_KEY`. Get it from
 your kie.ai dashboard: https://kie.ai/api-key
 
+## Credit balance & full-size previews
+
+- **Top-right credit balance** — a small pill next to the header shows
+  your current kie.ai credit balance, pulled from kie.ai's `/chat/credit`
+  endpoint. It refreshes on page load, every 60 seconds, and right after
+  any generation finishes. It turns red if your balance drops under 20.
+- **Click any generated image or video to preview it full-size** — this
+  works in the Image tab, Video tab, and both Bulk grids. In the bulk
+  grids, opening one image lets you page through every other successful
+  result in that batch with ◀ ▶ (or your keyboard's arrow keys), without
+  closing the preview. Videos keep their normal play controls in the
+  grid; click the small ⛶ button on a video card (or next to the single
+  Video tab's result) to open the full-size preview instead.
+
 ## Reference library — Subject / Scene / Style
 
 The **Characters** tab now mirrors Whisk's structure directly: three
@@ -130,6 +144,8 @@ Browser  →  Flask backend (app.py)  →  kie.ai API
 - `GET /api/characters` / `POST /api/characters` / `DELETE /api/characters/<id>`
   — manage the reference library (name + `category` of subject/scene/style
   + kie.ai file URL), persisted to `data/characters.json`.
+- `GET /api/credits` — proxies kie.ai's remaining-credit-balance check,
+  used by the pill in the top-right corner of the header.
 - `POST /api/image` — creates a `nano-banana-2-lite` generation task.
 - `POST /api/video` — creates a `grok-imagine-video-1-5-preview` task
   (fixed at 480p, duration 1–15s).

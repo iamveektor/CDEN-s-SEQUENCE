@@ -15,7 +15,14 @@
       <span class="brand-mark">◆</span>
       <span class="brand-name">C-DEN'S SEQUENCE</span>
     </div>
-    <div class="brand-sub">nano&#8209;banana&#8209;2&#8209;lite &nbsp;&middot;&nbsp; grok&#8209;imagine&#8209;video&#8209;1.5</div>
+    <div class="topbar-right">
+      <div class="brand-sub">nano&#8209;banana&#8209;2&#8209;lite &nbsp;&middot;&nbsp; grok&#8209;imagine&#8209;video&#8209;1.5</div>
+      <div class="credits-pill" id="credits-pill" title="kie.ai credit balance">
+        <span class="credits-dot"></span>
+        <span id="credits-value">—</span>
+        <span class="credits-label">credits</span>
+      </div>
+    </div>
   </header>
 
   <nav class="tabs" role="tablist">
@@ -195,6 +202,7 @@
         </div>
         <img id="image-result-img" class="result-media" hidden />
         <a id="image-download" class="download-link" hidden download target="_blank">Download image</a>
+        <button class="expand-btn" id="image-expand" hidden title="Preview full size">⛶</button>
       </div>
 
     </div>
@@ -247,6 +255,7 @@
         </div>
         <video id="video-result-video" class="result-media" controls hidden></video>
         <a id="video-download" class="download-link" hidden download target="_blank">Download video</a>
+        <button class="expand-btn" id="video-expand" hidden title="Preview full size">⛶</button>
       </div>
 
     </div>
@@ -486,6 +495,17 @@
 
   <footer class="footer">Connected to your kie.ai account</footer>
 
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox-close" id="lightbox-close">✕</button>
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" hidden>‹</button>
+  <div class="lightbox-media-wrap" id="lightbox-media-wrap"></div>
+  <button class="lightbox-nav lightbox-next" id="lightbox-next" hidden>›</button>
+  <div class="lightbox-footer">
+    <p class="lightbox-prompt" id="lightbox-prompt"></p>
+    <a class="download-link" id="lightbox-download" href="#" download target="_blank">Download</a>
+  </div>
 </div>
 
 <script src="app.js"></script>

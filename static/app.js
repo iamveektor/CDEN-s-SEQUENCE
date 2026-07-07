@@ -13,6 +13,29 @@ tabs.forEach((tab) => {
   });
 });
 
+// ---------- Credits balance (top right) ----------
+
+async function loadCredits() {
+  const pill = document.getElementById("credits-pill");
+  const valueEl = document.getElementById("credits-value");
+  try {
+    const res = await fetch("/api/credits");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to load credits");
+    const credits = data.credits;
+    valueEl.textContent = typeof credits === "number" ? credits.toLocaleString() : "—";
+    pill.classList.remove("loading");
+    pill.classList.toggle("low", typeof credits === "number" && credits < 20);
+  } catch (e) {
+    valueEl.textContent = "—";
+    pill.classList.remove("loading");
+    pill.title = "Could not load kie.ai credit balance: " + e.message;
+  }
+}
+
+loadCredits();
+setInterval(loadCredits, 60000);
+
 // ---------- Shared helpers ----------
 
 let lastGeneratedImageUrl = null;
@@ -149,12 +172,18 @@ document.getElementById("image-run").addEventListener("click", async () => {
         const img = document.getElementById("image-result-img");
         img.src = url;
         img.hidden = false;
+        const promptText = document.getElementById("image-prompt").value.trim();
+        img.onclick = () => openLightbox([{ url, kind: "image", prompt: promptText }], 0);
         const dl = document.getElementById("image-download");
         dl.href = url;
         dl.hidden = false;
+        const expandBtn = document.getElementById("image-expand");
+        expandBtn.hidden = false;
+        expandBtn.onclick = () => openLightbox([{ url, kind: "image", prompt: promptText }], 0);
         document.getElementById("video-use-last").hidden = false;
         document.getElementById("bulk-video-use-last").hidden = false;
         setStatus(statusEl, "Image ready.", "ok");
+        loadCredits();
       },
       onError: (msg) => {
         document.getElementById("image-result-loading").hidden = true;
@@ -247,10 +276,15 @@ document.getElementById("video-run").addEventListener("click", async () => {
         const vid = document.getElementById("video-result-video");
         vid.src = url;
         vid.hidden = false;
+        const promptText = document.getElementById("video-prompt").value.trim();
         const dl = document.getElementById("video-download");
         dl.href = url;
         dl.hidden = false;
+        const expandBtn = document.getElementById("video-expand");
+        expandBtn.hidden = false;
+        expandBtn.onclick = () => openLightbox([{ url, kind: "video", prompt: promptText }], 0);
         setStatus(statusEl, "Video ready.", "ok");
+        loadCredits();
       },
       onError: (msg) => {
         document.getElementById("video-result-loading").hidden = true;
@@ -383,6 +417,12 @@ function renderQueue(queueId, jobs) {
 function renderBulkGrid(gridId, jobs, kind) {
   const grid = document.getElementById(gridId);
   grid.innerHTML = "";
+
+  // Build the gallery of successful items once so the lightbox can page through them.
+  const successItems = jobs
+    .filter((j) => j.state === "success" && j.url)
+    .map((j) => ({ url: j.url, kind, prompt: j.prompt }));
+
   jobs.forEach((job) => {
     if (job.state === "queued") return; // not started yet, no card needed in gallery
     const card = document.createElement("div");
@@ -395,6 +435,10 @@ function renderBulkGrid(gridId, jobs, kind) {
       if (kind === "image") {
         const img = document.createElement("img");
         img.src = job.url;
+        img.addEventListener("click", () => {
+          const idx = successItems.findIndex((it) => it.url === job.url);
+          openLightbox(successItems, Math.max(0, idx));
+        });
         mediaWrap.appendChild(img);
       } else {
         const vid = document.createElement("video");
@@ -402,6 +446,17 @@ function renderBulkGrid(gridId, jobs, kind) {
         vid.controls = true;
         vid.muted = true;
         mediaWrap.appendChild(vid);
+
+        const expandBtn = document.createElement("button");
+        expandBtn.className = "bulk-card-expand";
+        expandBtn.title = "Preview full size";
+        expandBtn.textContent = "⛶";
+        expandBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const idx = successItems.findIndex((it) => it.url === job.url);
+          openLightbox(successItems, Math.max(0, idx));
+        });
+        mediaWrap.appendChild(expandBtn);
       }
     } else {
       const status = document.createElement("div");
@@ -528,6 +583,7 @@ function pollBatch(batchId, ids) {
             fail ? "err" : "ok");
           const runBtn = document.getElementById(runBtnId);
           if (runBtn) runBtn.disabled = false;
+          loadCredits();
         }
       } catch (e) {
         clearInterval(interval);
@@ -998,3 +1054,74 @@ createSimplePicker("bulk-video-char-picker", (url) => {
 });
 
 loadCharacters();
+
+// ============================================================
+// Lightbox — full-size preview with prev/next through a gallery
+// ============================================================
+
+let lightboxItems = [];
+let lightboxIndex = 0;
+
+function renderLightbox() {
+  const wrap = document.getElementById("lightbox-media-wrap");
+  const promptEl = document.getElementById("lightbox-prompt");
+  const dl = document.getElementById("lightbox-download");
+  const prevBtn = document.getElementById("lightbox-prev");
+  const nextBtn = document.getElementById("lightbox-next");
+
+  const item = lightboxItems[lightboxIndex];
+  if (!item) return;
+
+  wrap.innerHTML = "";
+  if (item.kind === "image") {
+    const img = document.createElement("img");
+    img.src = item.url;
+    wrap.appendChild(img);
+  } else {
+    const vid = document.createElement("video");
+    vid.src = item.url;
+    vid.controls = true;
+    vid.autoplay = true;
+    wrap.appendChild(vid);
+  }
+
+  promptEl.textContent = item.prompt || "";
+  dl.href = item.url;
+
+  const showNav = lightboxItems.length > 1;
+  prevBtn.hidden = !showNav;
+  nextBtn.hidden = !showNav;
+}
+
+function openLightbox(items, startIndex) {
+  if (!items || !items.length) return;
+  lightboxItems = items;
+  lightboxIndex = startIndex || 0;
+  document.getElementById("lightbox").hidden = false;
+  renderLightbox();
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").hidden = true;
+  document.getElementById("lightbox-media-wrap").innerHTML = "";
+  lightboxItems = [];
+}
+
+document.getElementById("lightbox-close").addEventListener("click", closeLightbox);
+document.getElementById("lightbox").addEventListener("click", (e) => {
+  if (e.target.id === "lightbox") closeLightbox();
+});
+document.getElementById("lightbox-prev").addEventListener("click", () => {
+  lightboxIndex = (lightboxIndex - 1 + lightboxItems.length) % lightboxItems.length;
+  renderLightbox();
+});
+document.getElementById("lightbox-next").addEventListener("click", () => {
+  lightboxIndex = (lightboxIndex + 1) % lightboxItems.length;
+  renderLightbox();
+});
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("lightbox").hidden) return;
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowLeft") document.getElementById("lightbox-prev").click();
+  if (e.key === "ArrowRight") document.getElementById("lightbox-next").click();
+});
