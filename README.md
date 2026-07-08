@@ -13,7 +13,7 @@ The Video and Bulk Video tabs now have a **Generation mode** toggle:
   to this mode hides the source-image upload section since it's not needed.
 
 Both modes work the same way everywhere else: single or bulk, and through
-the MCP connector — `generate_video` and `bulk_generate_videos` now
+the MCP connector — `cdens_generate_video` and `cdens_bulk_generate_videos` now
 automatically use text-to-video whenever no source image or character name
 is provided, and image-to-video whenever one is.
 
@@ -24,12 +24,17 @@ can call in a normal chat — "generate these 10 scenes" turns into Claude
 actually calling your site, not just describing what it would do.
 
 **Tools it exposes:**
-- `get_credits` — check kie.ai balance
-- `list_characters` — see what's saved in your Subject/Scene/Style library
-- `generate_image` / `generate_video` — start a single generation, returns a `task_id`
-- `check_task` — poll a single generation for its result
-- `bulk_generate_images` / `bulk_generate_videos` — start a batch (up to 150), returns a `batch_id`
-- `check_batch` — poll a batch for progress and failures
+- `cdens_get_credits` — check kie.ai balance
+- `cdens_list_characters` — see what's saved in your Subject/Scene/Style library
+- `cdens_generate_image` / `cdens_generate_video` — start a single generation, returns a `task_id`
+- `cdens_check_task` — poll a single generation for its result
+- `cdens_bulk_generate_images` / `cdens_bulk_generate_videos` — start a batch (up to 150), returns a `batch_id`
+- `cdens_check_batch` — poll a batch for progress and failures
+
+All tool names use a `cdens_` prefix on purpose — some other connectors
+(vidIQ, Higgsfield, etc.) also expose generically-named tools like "Generate
+Video," and Claude can end up calling the wrong one if names collide. The
+prefix makes it unambiguous which tool belongs to this app.
 
 This mirrors the same async job/poll pattern as your other MCP tools (vidIQ,
 etc.) — Claude starts a job, gets an ID back, and checks on it, rather than

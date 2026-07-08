@@ -65,7 +65,7 @@ def _find_character_urls(names):
 # ---------- Account ----------
 
 @mcp.tool()
-def get_credits() -> str:
+def cdens_get_credits() -> str:
     """Check the current kie.ai credit balance for this account."""
     data = _get("/api/credits")
     if "error" in data:
@@ -76,7 +76,7 @@ def get_credits() -> str:
 # ---------- Reference library ----------
 
 @mcp.tool()
-def list_characters(category: str = "") -> str:
+def cdens_list_characters(category: str = "") -> str:
     """List saved reference images from the Subject/Scene/Style library.
     Optionally filter by category: 'subject', 'scene', or 'style'. Use this
     before generating so you know what names are available to reference."""
@@ -92,20 +92,20 @@ def list_characters(category: str = "") -> str:
 # ---------- Single generation ----------
 
 @mcp.tool()
-def generate_image(prompt: str, character_names: list[str] = [], aspect_ratio: str = "16:9") -> str:
+def cdens_generate_image(prompt: str, character_names: list[str] = [], aspect_ratio: str = "16:9") -> str:
     """Start generating a single image with nano-banana-2-lite. Optionally pass
-    character_names (exact names from list_characters) to use as reference
+    character_names (exact names from cdens_list_characters) to use as reference
     images for visual consistency. Returns a task_id immediately — call
-    check_task to see the result once it's ready (usually 10-30 seconds)."""
+    cdens_check_task to see the result once it's ready (usually 10-30 seconds)."""
     image_urls = _find_character_urls(character_names)
     result = _post("/api/image", {"prompt": prompt, "aspect_ratio": aspect_ratio, "image_urls": image_urls})
     if "error" in result:
         return f"Error: {result['error']}"
-    return f"Started. task_id = {result['task_id']}. Call check_task with this id to get the result."
+    return f"Started. task_id = {result['task_id']}. Call cdens_check_task with this id to get the result."
 
 
 @mcp.tool()
-def generate_video(
+def cdens_generate_video(
     prompt: str,
     source_image_url: str = "",
     character_name: str = "",
@@ -116,7 +116,7 @@ def generate_video(
     given, animates that image with grok-imagine-video-1.5 (image-to-video, 480p).
     If NEITHER is given, generates straight from the text prompt instead using
     grok-imagine text-to-video (480p) — no image needed. Returns a task_id
-    immediately — call check_task to get the result once it's ready (usually
+    immediately — call cdens_check_task to get the result once it's ready (usually
     1-3 minutes)."""
     image_url = source_image_url
     if not image_url and character_name:
@@ -138,13 +138,13 @@ def generate_video(
     result = _post("/api/video", payload)
     if "error" in result:
         return f"Error: {result['error']}"
-    return f"Started ({payload['mode']}). task_id = {result['task_id']}. Call check_task with this id to get the result."
+    return f"Started ({payload['mode']}). task_id = {result['task_id']}. Call cdens_check_task with this id to get the result."
 
 
 @mcp.tool()
-def check_task(task_id: str) -> str:
+def cdens_check_task(task_id: str) -> str:
     """Check the status of a single image or video generation started with
-    generate_image or generate_video. Returns the result URL once ready."""
+    cdens_generate_image or cdens_generate_video. Returns the result URL once ready."""
     data = _get(f"/api/status/{task_id}")
     if "error" in data:
         return f"Error: {data['error']}"
@@ -160,7 +160,7 @@ def check_task(task_id: str) -> str:
 # ---------- Bulk generation ----------
 
 @mcp.tool()
-def bulk_generate_images(
+def cdens_bulk_generate_images(
     prompts: list[str],
     character_names: list[str] = [],
     aspect_ratio: str = "16:9",
@@ -169,7 +169,7 @@ def bulk_generate_images(
 ) -> str:
     """Start a bulk image batch (up to 150 prompts) in the background. Optionally
     pass character_names to use the same reference image(s) for every prompt.
-    Returns a batch_id immediately — call check_batch to monitor progress."""
+    Returns a batch_id immediately — call cdens_check_batch to monitor progress."""
     image_urls = _find_character_urls(character_names)
     result = _post("/api/batch/image", {
         "prompts": prompts, "image_urls": image_urls, "aspect_ratio": aspect_ratio,
@@ -181,7 +181,7 @@ def bulk_generate_images(
 
 
 @mcp.tool()
-def bulk_generate_videos(
+def cdens_bulk_generate_videos(
     prompts: list[str],
     source_image_urls: list[str] = [],
     character_name: str = "",
@@ -196,7 +196,7 @@ def bulk_generate_videos(
     grok-imagine-video-1.5 (image-to-video). If NONE of those are given,
     generates every prompt straight from text instead using grok-imagine
     text-to-video — no images needed. Returns a batch_id immediately — call
-    check_batch to monitor progress."""
+    cdens_check_batch to monitor progress."""
     urls = source_image_urls or _find_character_urls([character_name] if character_name else [])
 
     payload = {
@@ -216,9 +216,9 @@ def bulk_generate_videos(
 
 
 @mcp.tool()
-def check_batch(batch_id: str) -> str:
+def cdens_check_batch(batch_id: str) -> str:
     """Check progress of a bulk image/video batch started with
-    bulk_generate_images or bulk_generate_videos."""
+    cdens_bulk_generate_images or cdens_bulk_generate_videos."""
     data = _get(f"/api/batch/{batch_id}")
     if "error" in data:
         return f"Error: {data['error']}"
