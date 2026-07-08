@@ -205,6 +205,24 @@ document.getElementById("image-run").addEventListener("click", async () => {
 let videoRefUrl = null;
 let selectedVideoCharUrl = null;
 
+function applyVideoMode(mode) {
+  const isImg = mode === "image_to_video";
+  document.getElementById("video-source-section").hidden = !isImg;
+  document.getElementById("video-mode-hint").textContent = isImg
+    ? "Animates an existing image (grok-imagine-video-1.5)."
+    : "Generates directly from your text prompt (grok-imagine text-to-video) — no source image needed.";
+}
+
+document.getElementById("video-mode-pills").addEventListener("click", (e) => {
+  const btn = e.target.closest(".pill");
+  const group = document.getElementById("video-mode-pills");
+  if (!btn || !group.contains(btn)) return;
+  group.querySelectorAll(".pill").forEach((p) => p.classList.remove("active"));
+  btn.classList.add("active");
+  group.dataset.value = btn.dataset.value;
+  applyVideoMode(btn.dataset.value);
+});
+
 wireDrop("video-ref-drop", "video-ref-file", "video-ref-preview", async (file) => {
   setStatus(document.getElementById("video-status"), "Uploading source image…");
   try {
@@ -238,9 +256,13 @@ document.getElementById("video-run").addEventListener("click", async () => {
   const prompt = document.getElementById("video-prompt").value.trim();
   const aspect = document.getElementById("video-aspect").value;
   const duration = parseInt(document.getElementById("video-duration").value, 10) || 8;
+  const mode = document.getElementById("video-mode-pills").dataset.value;
 
   if (!prompt) { setStatus(statusEl, "Enter a prompt first.", "err"); return; }
-  if (!videoRefUrl && !selectedVideoCharUrl) { setStatus(statusEl, "Upload a source image first — this model animates a still image.", "err"); return; }
+  if (mode === "image_to_video" && !videoRefUrl && !selectedVideoCharUrl) {
+    setStatus(statusEl, "Upload a source image first — Image → Video mode animates a still image.", "err");
+    return;
+  }
 
   document.getElementById("video-result-empty").hidden = true;
   document.getElementById("video-result-video").hidden = true;
@@ -252,15 +274,13 @@ document.getElementById("video-run").addEventListener("click", async () => {
   setStatus(statusEl, "");
 
   try {
+    const payload = { prompt, aspect_ratio: aspect, duration, mode };
+    if (mode === "image_to_video") payload.image_url = selectedVideoCharUrl || videoRefUrl;
+
     const res = await fetch("/api/video", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt,
-        image_url: selectedVideoCharUrl || videoRefUrl,
-        aspect_ratio: aspect,
-        duration,
-      }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Request failed");
@@ -706,6 +726,24 @@ document.getElementById("bulk-video-ref-file").addEventListener("change", async 
   }
 });
 
+function applyBulkVideoMode(mode) {
+  const isImg = mode === "image_to_video";
+  document.getElementById("bulk-video-source-section").hidden = !isImg;
+  document.getElementById("bulk-video-mode-hint").textContent = isImg
+    ? "Animates a source image for every prompt."
+    : "Generates directly from text for every prompt — no source image needed.";
+}
+
+document.getElementById("bulk-video-mode-pills").addEventListener("click", (e) => {
+  const btn = e.target.closest(".pill");
+  const group = document.getElementById("bulk-video-mode-pills");
+  if (!btn || !group.contains(btn)) return;
+  group.querySelectorAll(".pill").forEach((p) => p.classList.remove("active"));
+  btn.classList.add("active");
+  group.dataset.value = btn.dataset.value;
+  applyBulkVideoMode(btn.dataset.value);
+});
+
 document.getElementById("bulk-video-run").addEventListener("click", async () => {
   const btn = document.getElementById("bulk-video-run");
   const statusEl = document.getElementById("bulk-video-status");
@@ -715,12 +753,15 @@ document.getElementById("bulk-video-run").addEventListener("click", async () => 
   const duration = parseInt(document.getElementById("bulk-video-duration").value, 10) || 8;
   const concurrency = parseInt(document.getElementById("bulk-video-concurrency").value, 10) || 3;
   const maxRetries = parseInt(document.getElementById("bulk-video-retries").value, 10) || 0;
+  const mode = document.getElementById("bulk-video-mode-pills").dataset.value;
 
   if (!prompts.length) { setStatus(statusEl, "Enter at least one prompt.", "err"); return; }
-  if (!bulkVideoImageUrls.length) { setStatus(statusEl, "Upload at least one source image.", "err"); return; }
-  if (bulkVideoImageUrls.length !== 1 && bulkVideoImageUrls.length !== prompts.length) {
-    setStatus(statusEl, `Upload exactly 1 image (used for all) or exactly ${prompts.length} images (one per prompt). You uploaded ${bulkVideoImageUrls.length}.`, "err");
-    return;
+  if (mode === "image_to_video") {
+    if (!bulkVideoImageUrls.length) { setStatus(statusEl, "Upload at least one source image.", "err"); return; }
+    if (bulkVideoImageUrls.length !== 1 && bulkVideoImageUrls.length !== prompts.length) {
+      setStatus(statusEl, `Upload exactly 1 image (used for all) or exactly ${prompts.length} images (one per prompt). You uploaded ${bulkVideoImageUrls.length}.`, "err");
+      return;
+    }
   }
 
   btn.disabled = true;
@@ -734,17 +775,13 @@ document.getElementById("bulk-video-run").addEventListener("click", async () => 
   document.getElementById("bulk-video-cancel").disabled = false;
 
   try {
+    const payload = { prompts, aspect_ratio: aspect, duration, concurrency, max_retries: maxRetries, mode };
+    if (mode === "image_to_video") payload.image_urls = bulkVideoImageUrls;
+
     const res = await fetch("/api/batch/video", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompts,
-        image_urls: bulkVideoImageUrls,
-        aspect_ratio: aspect,
-        duration,
-        concurrency,
-        max_retries: maxRetries,
-      }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Request failed");

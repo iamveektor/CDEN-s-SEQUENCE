@@ -29,15 +29,23 @@ def _check_configured():
 def _get(path, **params):
     _check_configured()
     r = requests.get(f"{APP_BASE_URL}{path}", params=params, timeout=30)
-    r.raise_for_status()
-    return r.json()
+    try:
+        data = r.json()
+    except ValueError:
+        r.raise_for_status()
+        raise RuntimeError(f"Unexpected non-JSON response from {path}")
+    return data
 
 
 def _post(path, payload=None):
     _check_configured()
     r = requests.post(f"{APP_BASE_URL}{path}", json=payload or {}, timeout=60)
-    r.raise_for_status()
-    return r.json()
+    try:
+        data = r.json()
+    except ValueError:
+        r.raise_for_status()
+        raise RuntimeError(f"Unexpected non-JSON response from {path}")
+    return data
 
 
 def _find_character_urls(names):
@@ -104,25 +112,33 @@ def generate_video(
     aspect_ratio: str = "16:9",
     duration: int = 8,
 ) -> str:
-    """Start generating a single video with grok-imagine-video-1.5 (image-to-video,
-    480p — this model animates a still image, it cannot generate video from text
-    alone). Provide either source_image_url directly, or character_name to pull
-    a saved reference from the library. Returns a task_id immediately — call
-    check_task to get the result once it's ready (usually 1-3 minutes)."""
+    """Start generating a single video. If source_image_url or character_name is
+    given, animates that image with grok-imagine-video-1.5 (image-to-video, 480p).
+    If NEITHER is given, generates straight from the text prompt instead using
+    grok-imagine text-to-video (480p) — no image needed. Returns a task_id
+    immediately — call check_task to get the result once it's ready (usually
+    1-3 minutes)."""
     image_url = source_image_url
     if not image_url and character_name:
         found = _find_character_urls([character_name])
         image_url = found[0] if found else ""
-    if not image_url:
-        return "No source image available — pass source_image_url, or a character_name that exists in the library (check with list_characters)."
 
-    result = _post("/api/video", {
-        "prompt": prompt, "image_url": image_url,
-        "aspect_ratio": aspect_ratio, "duration": duration,
-    })
+    if image_url:
+        payload = {
+            "prompt": prompt, "image_url": image_url,
+            "aspect_ratio": aspect_ratio, "duration": duration,
+            "mode": "image_to_video",
+        }
+    else:
+        payload = {
+            "prompt": prompt, "aspect_ratio": aspect_ratio,
+            "duration": duration, "mode": "text_to_video",
+        }
+
+    result = _post("/api/video", payload)
     if "error" in result:
         return f"Error: {result['error']}"
-    return f"Started. task_id = {result['task_id']}. Call check_task with this id to get the result."
+    return f"Started ({payload['mode']}). task_id = {result['task_id']}. Call check_task with this id to get the result."
 
 
 @mcp.tool()
@@ -174,20 +190,29 @@ def bulk_generate_videos(
     concurrency: int = 3,
     max_retries: int = 1,
 ) -> str:
-    """Start a bulk video batch (up to 150 prompts) in the background. Provide
-    either source_image_urls (exactly 1 to use for every prompt, or exactly one
-    per prompt matched in order) or a single character_name to reuse for every
-    prompt. Returns a batch_id immediately — call check_batch to monitor progress."""
+    """Start a bulk video batch (up to 150 prompts) in the background. If
+    source_image_urls (exactly 1 to use for every prompt, or exactly one per
+    prompt matched in order) or character_name is given, animates image(s) with
+    grok-imagine-video-1.5 (image-to-video). If NONE of those are given,
+    generates every prompt straight from text instead using grok-imagine
+    text-to-video — no images needed. Returns a batch_id immediately — call
+    check_batch to monitor progress."""
     urls = source_image_urls or _find_character_urls([character_name] if character_name else [])
-    if not urls:
-        return "No source image(s) available — pass source_image_urls, or a character_name that exists in the library."
-    result = _post("/api/batch/video", {
-        "prompts": prompts, "image_urls": urls, "aspect_ratio": aspect_ratio,
-        "duration": duration, "concurrency": concurrency, "max_retries": max_retries,
-    })
+
+    payload = {
+        "prompts": prompts, "aspect_ratio": aspect_ratio, "duration": duration,
+        "concurrency": concurrency, "max_retries": max_retries,
+    }
+    if urls:
+        payload["mode"] = "image_to_video"
+        payload["image_urls"] = urls
+    else:
+        payload["mode"] = "text_to_video"
+
+    result = _post("/api/batch/video", payload)
     if "error" in result:
         return f"Error: {result['error']}"
-    return f"Batch started: {result['total']} videos queued. batch_id = {result['batch_id']}."
+    return f"Batch started ({payload['mode']}): {result['total']} videos queued. batch_id = {result['batch_id']}."
 
 
 @mcp.tool()

@@ -2,6 +2,21 @@
 
 A web app for generating images and videos through your own kie.ai account.
 
+## Text-to-video (no source image needed)
+
+The Video and Bulk Video tabs now have a **Generation mode** toggle:
+
+- **Image → Video** (default) — the original behavior, animates a source
+  image with `grok-imagine-video-1.5` (480p)
+- **Text → Video** — generates straight from your prompt with
+  `grok-imagine/text-to-video` (480p), no image required at all. Switching
+  to this mode hides the source-image upload section since it's not needed.
+
+Both modes work the same way everywhere else: single or bulk, and through
+the MCP connector — `generate_video` and `bulk_generate_videos` now
+automatically use text-to-video whenever no source image or character name
+is provided, and image-to-video whenever one is.
+
 ## Talk to it from Claude directly (MCP)
 
 `mcp_server.py` is a companion server that exposes this app as tools Claude

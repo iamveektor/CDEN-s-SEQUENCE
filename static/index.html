@@ -213,17 +213,26 @@
     <div class="workspace">
 
       <div class="controls">
-        <label class="field-label" for="video-prompt">Prompt <span class="optional">(describe the motion)</span></label>
+        <label class="field-label" for="video-prompt">Prompt <span class="optional">(describe the scene / motion)</span></label>
         <textarea id="video-prompt" placeholder="Describe how the image should move, e.g. 'slow cinematic push-in as she turns to look at the camera'" rows="5"></textarea>
 
-        <label class="field-label">Source image <span class="required">(required — this model animates a still image)</span></label>
-        <div class="character-picker" id="video-char-picker"></div>
-        <div class="drop" id="video-ref-drop">
-          <input type="file" id="video-ref-file" accept="image/*" hidden />
-          <span class="drop-text">Click or drop the image to animate</span>
-          <img id="video-ref-preview" class="drop-preview" hidden />
+        <label class="field-label">Generation mode</label>
+        <div class="pill-group" id="video-mode-pills" data-value="image_to_video">
+          <button class="pill active" data-value="image_to_video">Image → Video</button>
+          <button class="pill" data-value="text_to_video">Text → Video</button>
         </div>
-        <button class="ghost-btn" id="video-use-last" type="button" hidden>Use last generated image</button>
+        <p class="hint" id="video-mode-hint">Animates an existing image (grok-imagine-video-1.5).</p>
+
+        <div id="video-source-section">
+          <label class="field-label">Source image <span class="required">(required — this model animates a still image)</span></label>
+          <div class="character-picker" id="video-char-picker"></div>
+          <div class="drop" id="video-ref-drop">
+            <input type="file" id="video-ref-file" accept="image/*" hidden />
+            <span class="drop-text">Click or drop the image to animate</span>
+            <img id="video-ref-preview" class="drop-preview" hidden />
+          </div>
+          <button class="ghost-btn" id="video-use-last" type="button" hidden>Use last generated image</button>
+        </div>
 
         <div class="row-2">
           <div>
@@ -411,7 +420,16 @@
           <textarea id="bulk-video-prompts" placeholder="Enter one motion prompt per line&#10;&#10;Slow push-in as she looks up and smiles&#10;Camera pans left revealing the skyline" rows="8"></textarea>
         </div>
 
-        <div class="card card-ref">
+        <div class="card card-style">
+          <label class="field-label-sm" style="margin-top:0;">Generation mode</label>
+          <div class="pill-group" id="bulk-video-mode-pills" data-value="image_to_video">
+            <button class="pill active" data-value="image_to_video">Image → Video</button>
+            <button class="pill" data-value="text_to_video">Text → Video</button>
+          </div>
+          <p class="hint" id="bulk-video-mode-hint" style="margin-top:8px;">Animates a source image for every prompt.</p>
+        </div>
+
+        <div class="card card-ref" id="bulk-video-source-section">
           <label class="field-label-sm" style="margin-top:0;">Source image(s) <span class="required">required</span></label>
           <div class="character-picker" id="bulk-video-char-picker"></div>
           <div class="drop drop-sm" id="bulk-video-ref-drop">

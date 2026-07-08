@@ -18,7 +18,8 @@ KIE_BASE = "https://api.kie.ai/api/v1"
 KIE_UPLOAD_BASE = "https://kieai.redpandaai.co/api"
 
 IMAGE_MODEL = "nano-banana-2-lite"
-VIDEO_MODEL = "grok-imagine-video-1-5-preview"
+VIDEO_MODEL = "grok-imagine-video-1-5-preview"          # image-to-video only
+TEXT_VIDEO_MODEL = "grok-imagine/text-to-video"          # text-to-video, same family/look
 
 MAX_BULK = 150
 BULK_CONCURRENCY = 4  # simultaneous in-flight generations per batch, kind to rate limits
@@ -243,6 +244,27 @@ def create_video_task(prompt, image_url, aspect_ratio, duration):
     return data["data"]["taskId"]
 
 
+def create_text_video_task(prompt, aspect_ratio, duration):
+    duration = max(1, min(15, int(duration or 6)))
+    payload = {
+        "model": TEXT_VIDEO_MODEL,
+        "input": {
+            "prompt": prompt,
+            "aspect_ratio": aspect_ratio or "16:9",
+            "mode": "normal",
+            "duration": str(duration),
+            "resolution": "480p",
+        },
+    }
+    resp = requests.post(f"{KIE_BASE}/jobs/createTask", headers=kie_headers(), json=payload, timeout=60)
+    if resp.status_code != 200:
+        raise RuntimeError(f"kie.ai request failed: {resp.text}")
+    data = resp.json()
+    if data.get("code") != 200:
+        raise RuntimeError(f"kie.ai task creation failed: {data}")
+    return data["data"]["taskId"]
+
+
 def fetch_task_status(task_id):
     resp = requests.get(
         f"{KIE_BASE}/jobs/recordInfo",
@@ -302,13 +324,17 @@ def generate_video():
         return err
     body = request.get_json(force=True) or {}
     prompt = (body.get("prompt") or "").strip()
-    image_url = body.get("image_url")
+    mode = body.get("mode", "image_to_video")
     if not prompt:
         return jsonify({"error": "Prompt is required"}), 400
-    if not image_url:
-        return jsonify({"error": "An image_url is required (this model is image-to-video only)"}), 400
     try:
-        task_id = create_video_task(prompt, image_url, body.get("aspect_ratio"), body.get("duration"))
+        if mode == "text_to_video":
+            task_id = create_text_video_task(prompt, body.get("aspect_ratio"), body.get("duration"))
+        else:
+            image_url = body.get("image_url")
+            if not image_url:
+                return jsonify({"error": "An image_url is required for image-to-video"}), 400
+            task_id = create_video_task(prompt, image_url, body.get("aspect_ratio"), body.get("duration"))
         return jsonify({"task_id": task_id})
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 502
@@ -341,6 +367,8 @@ def run_job(job, kind, aspect_ratio, duration, max_retries, batch):
             job["started_at"] = job.get("started_at") or time.time()
             if kind == "image":
                 task_id = create_image_task(job["prompt"], aspect_ratio, job.get("image_urls"))
+            elif job.get("mode") == "text_to_video":
+                task_id = create_text_video_task(job["prompt"], aspect_ratio, duration)
             else:
                 task_id = create_video_task(job["prompt"], job.get("image_url"), aspect_ratio, duration)
             job["task_id"] = task_id
@@ -451,31 +479,35 @@ def batch_video():
         return err
     body = request.get_json(force=True) or {}
     prompts = [p.strip() for p in (body.get("prompts") or []) if p and p.strip()]
-    image_urls = [u for u in (body.get("image_urls") or []) if u]
+    mode = body.get("mode", "image_to_video")
 
     if not prompts:
         return jsonify({"error": "At least one prompt is required"}), 400
     if len(prompts) > MAX_BULK:
         return jsonify({"error": f"Maximum {MAX_BULK} prompts per batch"}), 400
-    if not image_urls:
-        return jsonify({"error": "At least one source image is required"}), 400
-
-    if len(image_urls) == 1:
-        paired = [image_urls[0]] * len(prompts)
-    elif len(image_urls) == len(prompts):
-        paired = image_urls
-    else:
-        return jsonify({
-            "error": f"Uploaded {len(image_urls)} images but {len(prompts)} prompts. "
-                     f"Upload exactly 1 image (used for all) or exactly {len(prompts)} images (one per prompt)."
-        }), 400
 
     aspect_ratio = body.get("aspect_ratio", "16:9")
     duration = body.get("duration", 8)
     concurrency = body.get("concurrency", 4)
     max_retries = body.get("max_retries", 1)
 
-    jobs = [{"prompt": p, "image_url": img} for p, img in zip(prompts, paired)]
+    if mode == "text_to_video":
+        jobs = [{"prompt": p, "mode": "text_to_video"} for p in prompts]
+    else:
+        image_urls = [u for u in (body.get("image_urls") or []) if u]
+        if not image_urls:
+            return jsonify({"error": "At least one source image is required for image-to-video"}), 400
+        if len(image_urls) == 1:
+            paired = [image_urls[0]] * len(prompts)
+        elif len(image_urls) == len(prompts):
+            paired = image_urls
+        else:
+            return jsonify({
+                "error": f"Uploaded {len(image_urls)} images but {len(prompts)} prompts. "
+                         f"Upload exactly 1 image (used for all) or exactly {len(prompts)} images (one per prompt)."
+            }), 400
+        jobs = [{"prompt": p, "image_url": img, "mode": "image_to_video"} for p, img in zip(prompts, paired)]
+
     batch_id = make_batch("video", jobs, aspect_ratio, duration=duration,
                            concurrency=concurrency, max_retries=max_retries)
     return jsonify({"batch_id": batch_id, "total": len(jobs)})
